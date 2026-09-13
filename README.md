@@ -27,6 +27,12 @@ bin/rails chaos:all                # everything above in sequence
 
 Restarting on purpose is the point: if recovery isn't boring, it isn't recovery.
 
+**Queue ownership:** the generated `config/queue.yml` pins Ruby workers to `queues:
+[default]` instead of Rails' `"*"` default. If you attach the Elixir job runner
+([shishi-odoshi/beam](https://github.com/shishi-odoshi/beam)) on designated queues,
+`"*"` would make Ruby workers silently race it — Solid Queue has no exclusion syntax,
+so always enumerate Ruby-owned queues (see beam#10).
+
 ## CI
 
 `scripts/verify.sh` (also the CI job) generates a brand-new app from

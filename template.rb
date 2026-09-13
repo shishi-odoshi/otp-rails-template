@@ -49,6 +49,12 @@ after_bundle do
     end
   RUBY
 
+  # Ruby Solid Queue workers default to queues: "*" and would silently race
+  # any queue designated for the Elixir runner (shishi-odoshi/beam#10 — Solid
+  # Queue has no exclusion syntax). Enumerate the Ruby-owned queues instead.
+  gsub_file "config/queue.yml", /queues: \S+/,
+            "queues: [default] # Ruby-owned queues only; never \"*\" beside an Elixir runner (beam#10)"
+
   rakefile "chaos.rake", <<~'RUBY'
     # frozen_string_literal: true
     # Chaos tasks (otp-rails template): kill -9 a supervised child and assert
