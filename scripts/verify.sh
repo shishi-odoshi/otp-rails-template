@@ -30,7 +30,7 @@ curl -fsS "http://127.0.0.1:$PORT/up" >/dev/null
 bin/rails "chaos:kill[web]"
 bin/rails "chaos:kill[jobs]"
 
-# clean stop must exit 0 (otp-rails contract)
+# clean stop must exit 0 (odoshi contract)
 kill -TERM "$SUP"
 wait "$SUP"
 trap - EXIT

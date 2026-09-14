@@ -1,20 +1,20 @@
-# otp-rails-template
+# odoshi-template
 
 A `rails new` application template that puts a fresh Rails app under
-[otp-rails](https://github.com/shishi-odoshi/otp-rails) supervision — and the
+[odoshi](https://github.com/shishi-odoshi/odoshi) supervision — and the
 chaos tasks that prove it recovers.
 
 ```
-rails new myapp -m https://raw.githubusercontent.com/shishi-odoshi/otp-rails-template/main/template.rb
+rails new myapp -m https://raw.githubusercontent.com/shishi-odoshi/odoshi-template/main/template.rb
 ```
 
 ## What it adds
 
-- `gem "otp-rails"` (zero runtime dependencies; the supervisor never loads Rails)
+- `gem "odoshi"` (zero runtime dependencies; the supervisor never loads Rails)
 - `config/supervisor.rb` — `rest_for_one` tree: `:web` (puma, health = HTTP `/up`
   probe) then `:jobs` (Solid Queue, health = active heartbeat)
 - `bin/supervise` — run the tree; Ctrl-C drains children in reverse order
-- `config/initializers/otp_rails_heartbeat.rb` — the jobs child heartbeats over
+- `config/initializers/odoshi_heartbeat.rb` — the jobs child heartbeats over
   the supervisor's Unix socket; a silent no-op when the app runs unsupervised
 - `lib/tasks/chaos.rake`:
 
@@ -42,4 +42,4 @@ shutdown. The template is never allowed to drift from what it actually
 generates.
 
 Part of the [shishi-odoshi](https://github.com/shishi-odoshi) org. The design
-lives in [otp-rails/docs/DESIGN.md](https://github.com/shishi-odoshi/otp-rails/blob/main/docs/DESIGN.md).
+lives in [odoshi/docs/DESIGN.md](https://github.com/shishi-odoshi/odoshi/blob/main/docs/DESIGN.md).

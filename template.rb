@@ -1,14 +1,14 @@
 # frozen_string_literal: true
-# otp-rails application template — supervise a Rails app's processes with OTP
-# semantics (https://github.com/shishi-odoshi/otp-rails).
+# odoshi application template — supervise a Rails app's processes with OTP
+# semantics (https://github.com/shishi-odoshi/odoshi).
 #
-#   rails new myapp -m https://raw.githubusercontent.com/shishi-odoshi/otp-rails-template/main/template.rb
+#   rails new myapp -m https://raw.githubusercontent.com/shishi-odoshi/odoshi-template/main/template.rb
 #
-# Adds: the otp-rails gem, config/supervisor.rb (web + jobs), bin/supervise,
+# Adds: the odoshi gem, config/supervisor.rb (web + jobs), bin/supervise,
 # a heartbeat initializer for the jobs child, and rake chaos:* tasks that kill
 # children and assert the supervisor recovers them in under 10 seconds.
 
-gem "otp-rails", "~> 0.1", require: false
+gem "odoshi", "~> 0.3", require: false
 # json 3.x breaks ActiveSupport::JSON.decode (2-arg JSON.parse) as of Rails
 # 8.1.3, which crash-loops Solid Queue's serialized columns. Remove this pin
 # once Rails supports json 3.
@@ -17,7 +17,7 @@ gem "json", "< 3.0"
 after_bundle do
   create_file "config/supervisor.rb", <<~RUBY
     # frozen_string_literal: true
-    # Plain Ruby — evaluated WITHOUT Rails (otp-rails DESIGN §9).
+    # Plain Ruby — evaluated WITHOUT Rails (odoshi DESIGN §9).
     strategy :rest_for_one
     max_restarts 5, within: 60
     backoff :exponential, base: 1, cap: 30
@@ -26,26 +26,26 @@ after_bundle do
     # a web crash also restarts jobs; a jobs crash restarts only jobs.
     child :web,  adapter: :puma, port: Integer(ENV.fetch("PORT", 3000)), shutdown: 30
     child :jobs, adapter: :solid_queue, shutdown: 60,
-                 env: { "OTP_RAILS_CHILD_ID" => "jobs" }
+                 env: { "ODOSHI_CHILD_ID" => "jobs" }
   RUBY
 
   create_file "bin/supervise", <<~SH
     #!/usr/bin/env bash
-    # Run the app under the otp-rails supervisor. Ctrl-C drains and stops.
+    # Run the app under the odoshi supervisor. Ctrl-C drains and stops.
     set -euo pipefail
     cd "$(dirname "$0")/.."
-    exec bundle exec otp-rails run config/supervisor.rb
+    exec bundle exec odoshi run config/supervisor.rb
   SH
   chmod "bin/supervise", 0o755
 
-  initializer "otp_rails_heartbeat.rb", <<~RUBY
+  initializer "odoshi_heartbeat.rb", <<~RUBY
     # frozen_string_literal: true
-    # Active heartbeat to the otp-rails supervisor (DESIGN §5). The supervisor
+    # Active heartbeat to the odoshi supervisor (DESIGN §5). The supervisor
     # tags each child via env, so only the intended process heartbeats; the
     # helper is a silent no-op when the app runs unsupervised.
-    if ENV["OTP_RAILS_CHILD_ID"]
-      require "otp_rails/heartbeat"
-      OtpRails::Heartbeat.start(id: ENV["OTP_RAILS_CHILD_ID"])
+    if ENV["ODOSHI_CHILD_ID"]
+      require "odoshi/heartbeat"
+      Odoshi::Heartbeat.start(id: ENV["ODOSHI_CHILD_ID"])
     end
   RUBY
 
@@ -57,7 +57,7 @@ after_bundle do
 
   rakefile "chaos.rake", <<~'RUBY'
     # frozen_string_literal: true
-    # Chaos tasks (otp-rails template): kill -9 a supervised child and assert
+    # Chaos tasks (odoshi template): kill -9 a supervised child and assert
     # the supervisor brings it back healthy in under 10 seconds.
     # Run bin/supervise first, then: bin/rails "chaos:kill[web]"
     require "net/http"
@@ -129,5 +129,5 @@ after_bundle do
     end
   RUBY
 
-  say "otp-rails wired in: bin/supervise to run, bin/rails chaos:all to break things on purpose.", :green
+  say "odoshi wired in: bin/supervise to run, bin/rails chaos:all to break things on purpose.", :green
 end
